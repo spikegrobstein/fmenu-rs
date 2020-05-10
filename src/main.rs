@@ -4,6 +4,8 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use futures::future::join_all;
 
+use std::collections::HashSet;
+
 use anyhow::Result;
 
 fn main() -> Result<()> {
@@ -25,12 +27,19 @@ fn main() -> Result<()> {
 
         let results = join_all(futures).await;
 
-        for r in results {
-            for p in r? {
-                println!("{}", p);
+        let all_executables: HashSet<&str> = results.iter().fold(HashSet::new(), |mut acc, executables| {
+            if let Ok(executables) = executables {
+                for e in executables {
+                    acc.insert(e);
+                }
             }
-        }
 
+            acc
+        });
+
+        for p in all_executables {
+            println!("{}", p);
+        }
 
         Ok(())
     })
