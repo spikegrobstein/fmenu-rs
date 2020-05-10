@@ -9,9 +9,7 @@ use anyhow::Result;
 fn main() -> Result<()> {
     let path = env::var("PATH").expect("PATH not set");
 
-    let mut elements: Vec<String> = path.split(":")
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>();
+    let mut elements: Vec<&str> = path.split(":").collect();
 
     elements.sort();
     elements.dedup();
@@ -38,7 +36,7 @@ fn main() -> Result<()> {
     })
 }
 
-async fn executables_from_dir(dir: String) -> Result<Vec<String>> {
+async fn executables_from_dir(dir: &str) -> Result<Vec<String>> {
     let list = fs::read_dir(dir)?;
 
     let executables = list.filter(move |f| {
