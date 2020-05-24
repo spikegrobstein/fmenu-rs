@@ -1,5 +1,7 @@
 use std::env;
 use std::fs;
+use std::io;
+use std::io::Write;
 
 use std::os::unix::fs::PermissionsExt;
 use futures::future::join_all;
@@ -28,18 +30,20 @@ fn main() -> Result<()> {
         let results = join_all(futures).await;
 
         let all_executables: HashSet<&str> = results.iter().fold(HashSet::new(), |mut acc, executables| {
+
+        let stdout = io::stdout();
+        let mut lock = stdout.lock();
+
             if let Ok(executables) = executables {
                 for e in executables {
-                    acc.insert(e);
+                    if acc.insert(e) {
+                        writeln!(lock, "{}", e).unwrap();
+                    }
                 }
             }
 
             acc
         });
-
-        for p in all_executables {
-            println!("{}", p);
-        }
 
         Ok(())
     })
